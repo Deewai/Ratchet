@@ -64,6 +64,10 @@ class MyChat implements MessageComponentInterface {
         }
     }
 
+    public function onBinaryMessage(ConnectionInterface $from, $msg) {
+        // There binary message
+    }
+
     public function onClose(ConnectionInterface $conn) {
         $this->clients->detach($conn);
     }
