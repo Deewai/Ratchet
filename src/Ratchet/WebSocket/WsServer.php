@@ -99,6 +99,22 @@ class WsServer implements HttpServerInterface {
         $this->attemptUpgrade($from, $msg);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function onBinaryMessage(ConnectionInterface $from, $msg) {
+        if ($from->WebSocket->closing) {
+            return;
+        }
+
+        if (true === $from->WebSocket->established) {
+            return $from->WebSocket->version->onBinaryMessage($this->connections[$from], $msg);
+        }
+
+        $this->attemptUpgrade($from, $msg);
+    }
+
+
     protected function attemptUpgrade(ConnectionInterface $conn, $data = '') {
         if ('' !== $data) {
             $conn->WebSocket->request->getBody()->write($data);

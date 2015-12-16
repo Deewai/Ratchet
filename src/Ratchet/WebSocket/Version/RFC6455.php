@@ -184,6 +184,7 @@ class RFC6455 implements VersionInterface {
             }
 
             if (count($from->WebSocket->message) > 0 && $frame::OP_CONTINUE != $frame->getOpcode()) {
+                echo "22222";
                 return $from->close($frame::CLOSE_PROTOCOL);
             }
 
@@ -194,12 +195,15 @@ class RFC6455 implements VersionInterface {
         if ($from->WebSocket->message->isCoalesced()) {
             $parsed = $from->WebSocket->message->getPayload();
             unset($from->WebSocket->message);
+            if ($opcode == Frame::OP_BINARY && method_exists($from->WebSocket->coalescedCallback, 'onBinaryMessage')) {
+                $from->WebSocket->coalescedCallback->onBinaryMessage($from, $parsed);
+            } else {
+                if (!$this->validator->checkEncoding($parsed, 'UTF-8')) {
+                    return $from->close(Frame::CLOSE_BAD_PAYLOAD);
+                }
 
-            if (!$this->validator->checkEncoding($parsed, 'UTF-8')) {
-                return $from->close(Frame::CLOSE_BAD_PAYLOAD);
+                $from->WebSocket->coalescedCallback->onMessage($from, $parsed);
             }
-
-            $from->WebSocket->coalescedCallback->onMessage($from, $parsed);
         }
 
         if (strlen($overflow) > 0) {
