@@ -1,5 +1,5 @@
 {
-    "name": "cboden/ratchet"
+    "name": "dizard/ratchet"
   , "type": "library"
   , "description": "PHP WebSocket library"
   , "keywords": ["WebSockets", "Server", "Ratchet", "Sockets"]
