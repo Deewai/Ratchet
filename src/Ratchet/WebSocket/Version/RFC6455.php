@@ -24,6 +24,8 @@ class RFC6455 implements VersionInterface {
      */
     protected $_verifier;
 
+    static $num=0;
+
     /**
      * A lookup of the valid close codes that can be sent in a frame
      * @var array
@@ -110,6 +112,8 @@ class RFC6455 implements VersionInterface {
             $from->WebSocket->frame = $this->newFrame();
         }
 
+        //echo "addToBufer \n";
+
         $from->WebSocket->frame->addBuffer($data);
         if ($from->WebSocket->frame->isCoalesced()) {
             $frame = $from->WebSocket->frame;
@@ -126,6 +130,7 @@ class RFC6455 implements VersionInterface {
             }
 
             $opcode = $frame->getOpcode();
+
 
             if ($opcode > 2) {
                 if ($frame->getPayloadLength() > 125 || !$frame->isFinal()) {
@@ -184,24 +189,24 @@ class RFC6455 implements VersionInterface {
             }
 
             if (count($from->WebSocket->message) > 0 && $frame::OP_CONTINUE != $frame->getOpcode()) {
-                echo "22222";
                 return $from->close($frame::CLOSE_PROTOCOL);
             }
-
             $from->WebSocket->message->addFrame($from->WebSocket->frame);
             unset($from->WebSocket->frame);
         }
 
         if ($from->WebSocket->message->isCoalesced()) {
+            //echo "Optcode $opcode \n";
             $parsed = $from->WebSocket->message->getPayload();
+            $opcode = $from->WebSocket->message->getOpcode();
             unset($from->WebSocket->message);
+
             if ($opcode == Frame::OP_BINARY && method_exists($from->WebSocket->coalescedCallback, 'onBinaryMessage')) {
                 $from->WebSocket->coalescedCallback->onBinaryMessage($from, $parsed);
-            } else {
+            } elseif($opcode==Frame::OP_TEXT) {
                 if (!$this->validator->checkEncoding($parsed, 'UTF-8')) {
                     return $from->close(Frame::CLOSE_BAD_PAYLOAD);
                 }
-
                 $from->WebSocket->coalescedCallback->onMessage($from, $parsed);
             }
         }
