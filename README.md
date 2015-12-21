@@ -66,6 +66,8 @@ class MyChat implements MessageComponentInterface {
 
     public function onBinaryMessage(ConnectionInterface $from, $msg) {
         // There binary message
+        $data = "";
+        $form->sendBinary($data);
     }
 
     public function onClose(ConnectionInterface $conn) {
